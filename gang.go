@@ -1,3 +1,4 @@
+// Package gang provides utilities to manage multiple functions.
 package gang
 
 import (
@@ -5,8 +6,11 @@ import (
 	"sync"
 )
 
-// Package gang provides utilities to manage multiple goroutines.
+// Gang provides a mechanism to run multiple functions.
+// Zero value of Gang is usable.
+// All functions are thread-safe.
 type Gang struct {
+	// When ContinueOnErrExit is set, if any one of the added
 	ContinueOnErrExit   bool
 	ContinueOnCleanExit bool
 
@@ -70,6 +74,8 @@ func (g *Gang) AddWithCtxE(fn func(context.Context) error) {
 // (or channel) passed to added function is cancelled (or closed) as well.
 // The returned channel returns errors (if any) returned by all of
 // added functions and is closed once all the functions have finished executing.
+// Calling Run() more than once is a no-op and returns the same channel.
+// Any calls to Add* functions after calling Run() are no-ops.
 func (g *Gang) Run(ctx context.Context) <-chan error {
 	g.once.Do(func() {
 		var wg sync.WaitGroup
