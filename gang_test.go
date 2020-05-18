@@ -159,3 +159,20 @@ func TestContinueOnCleanExit(t *testing.T) {
 		t.Errorf("unexpected counter value")
 	}
 }
+
+func TestRunIsIdempotent(t *testing.T) {
+	var g Gang
+	g.AddWithCtx(func(ctx context.Context) {
+		<-ctx.Done()
+	})
+	g.AddWithCtxE(func(ctx context.Context) error {
+		<-ctx.Done()
+		return nil
+	})
+	errCh1 := g.Run(context.Background())
+	errCh2 := g.Run(context.Background())
+
+	if !reflect.DeepEqual(errCh1, errCh2) {
+		t.Errorf("expected error channels to be equal")
+	}
+}
